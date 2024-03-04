@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serverless-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: serverless-redis
+  template:
+    metadata:
+      labels:
+        app: serverless-redis
+    spec:
+      containers:
+      - name: serverless-redis
+        image: rallegro/runtime:latest
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 100m
+            memory: 300Mi
+        volumeMounts:
+        - name: pyfile
+          mountPath: "/opt/usermodule.py"
+          subPath: pyfile
+        - name: module-zip
+          mountPath: "/opt/function_module/"
+        env:
+        - name: REDIS_HOST
+          value: "10.244.0.1"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_INPUT_KEY
+          value: "metrics"
+        - name: REDIS_OUTPUT_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: outputkey
+              key: REDIS_OUTPUT_KEY
+        - name: FUNCTION_PATH
+          value: "/opt/usermodule.py"
+        - name: FUNCTION_ZIP_PATH
+          value: "/opt/function_module/module.zip"
+        - name: ZIPPED_MODULE_NAME
+          value: "serverless_function.handle"
+      volumes:
+      - name: pyfile
+        configMap:
+          name: pyfile
+      - name: module-zip
+        configMap:
+          name: module-zip
+          items:
+            - key: zipped-module
+              path: module.zip
+          optional: true

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard-deployment-hw3-lw337
+  labels:
+    app: dashboard-hw3-lw337
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard-hw3-lw337
+  template:
+    metadata:
+      labels:
+        app: dashboard-hw3-lw337
+    spec:
+      containers:
+      - name: dashboard
+        image: rallegro/dashboard:latest
+        ports:
+        - containerPort: 8005
+        env:
+        - name: REDIS_HOST
+          value: "10.244.0.1"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_OUTPUT_KEY
+          value: "lw337-proj3-output"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard-service-hw3-lw337
+spec:
+  selector:
+    app: dashboard-hw3-lw337
+  ports:
+    - port: 53002
+      targetPort: 8005
